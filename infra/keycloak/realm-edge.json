@@ -1,0 +1,54 @@
+{
+  "realm": "edge",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "edge-portal",
+      "name": "Edge Portal (SPA)",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "redirectUris": [
+        "http://portal.edge.local:3000/*"
+      ],
+      "webOrigins": [
+        "http://portal.edge.local:3000"
+      ],
+      "protocol": "openid-connect"
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "edge-admin",
+        "description": "Edge administrators"
+      },
+      {
+        "name": "ops",
+        "description": "Operations"
+      },
+      {
+        "name": "viewer",
+        "description": "Read-only"
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "edgeadmin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Edge",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "edgeadmin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "edge-admin"
+      ]
+    }
+  ]
+}
