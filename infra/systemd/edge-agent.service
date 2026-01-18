@@ -1,0 +1,23 @@
+[Unit]
+Description=Edge Onboarding Agent (root)
+After=network-online.target keycloak.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/edge-onboard/agent
+EnvironmentFile=/etc/edge-onboard/agent.env
+ExecStart=/usr/bin/node /opt/edge-onboard/agent/src/index.js
+Restart=always
+RestartSec=2
+
+# Hardening (adjust if needed)
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/etc /run /var/lib/edge-onboard /var/log /var/snap /snap /var/lib/lxd
+
+[Install]
+WantedBy=multi-user.target

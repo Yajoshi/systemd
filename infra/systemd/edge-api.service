@@ -1,0 +1,17 @@
+[Unit]
+Description=Edge Onboarding API
+After=network-online.target keycloak.service edge-agent.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=edgeapi
+Group=edgeapi
+WorkingDirectory=/opt/edge-onboard/api
+EnvironmentFile=/etc/edge-onboard/api.env
+ExecStart=/usr/bin/node /opt/edge-onboard/api/index.js
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

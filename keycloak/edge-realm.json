@@ -1,0 +1,24 @@
+{
+  "realm": "edge",
+  "enabled": true,
+  "roles": {
+    "realm": [
+      { "name": "edge-admin" },
+      { "name": "edge-operator" },
+      { "name": "edge-viewer" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "edge-portal",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost/*"],
+      "webOrigins": ["http://localhost"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ]
+}
