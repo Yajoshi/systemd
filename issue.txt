@@ -1,0 +1,80 @@
+Here’s a clean list of the issues you hit after using the zip, what they meant, and what fixed them.
+
+## 1) Nginx site file copy failed
+
+**Error:** `cp: cannot create regular file '/etc/nginx/sites-available/edge-portal': No such file or directory`
+**Cause:** Nginx not installed (or Ubuntu image didn’t have `sites-available/sites-enabled` dirs).
+**Fix:**
+
+* `sudo apt install -y nginx`
+* `sudo mkdir -p /etc/nginx/sites-available /etc/nginx/sites-enabled`
+* Re-run installer / re-copy config.
+
+---
+
+## 2) Keycloak service failed with status 127
+
+**Symptom:** `systemctl status keycloak` → `status=127`
+**Cause:** `ExecStart` pointed to `/opt/keycloak/bin/kc.sh` but **Keycloak wasn’t installed there**, so `kc.sh` didn’t exist.
+**Fix:** Install Keycloak to `/opt/keycloak` (or update service path). After install, `kc.sh` exists and Keycloak starts.
+
+---
+
+## 3) edge-agent failed with 226/NAMESPACE
+
+**Symptom:** `systemctl status edge-agent` → `status=226/NAMESPACE`
+**Cause:** systemd hardening / mount namespace setup failed because:
+
+* required paths (like `/var/lib/edge-onboard`) didn’t exist, and/or
+* `ProtectSystem=strict` + `ReadWritePaths=...` prevented namespace setup.
+  **Fix:**
+* Create folders: `sudo mkdir -p /var/lib/edge-onboard /var/log/edge-onboard`
+* Temporarily remove/comment hardening lines (`ProtectSystem=strict`, `ReadWritePaths=...`) so it can start.
+* Restart service.
+
+---
+
+## 4) Keycloak login redirect returned 405
+
+**Symptom:** Browser redirected to a URL like:
+`http://localhost/realms/edge/login-actions/authenticate...` → **405**
+**Cause:** Requests for `/realms/...` were going to **Nginx (portal)**, not Keycloak. Keycloak was running under **`/auth`** path, so the portal and proxy were misconfigured.
+**Fix:**
+
+* Confirm Keycloak OIDC config at:
+  `http://127.0.0.1:8081/auth/realms/edge/.well-known/openid-configuration`
+* Set issuer everywhere to match exactly:
+  `http://127.0.0.1:8081/auth/realms/edge`
+* Update Nginx Keycloak proxy to:
+
+  ```nginx
+  location /auth/ {
+    proxy_pass http://127.0.0.1:8081/auth/;
+  }
+  ```
+* Ensure portal Keycloak URL uses `/auth`.
+
+---
+
+## 5) Confusion: admin vs user login in Keycloak
+
+**Symptom:** “Keycloak is asking for admin or user”
+**Cause:** Different endpoints:
+
+* `/auth/admin/` = **admin console** login (admin user)
+* realm auth endpoints = **normal user** login for SSO
+  **Fix:**
+* Use admin creds only for admin console.
+* Create a realm user (e.g., `edgeadmin`) and assign role `edge-admin` for portal/agent actions.
+
+---
+
+## 6) (Earlier) VM kept booting installer ISO after install
+
+**Symptom:** Always returned to “Try or Install Ubuntu Server” menu.
+**Cause:** ISO still attached and boot order prioritized ISO.
+**Fix:** Eject ISO in UTM + set disk first boot + use “Boot from next volume” once.
+
+---
+
+If you want, I can also give you a **“post-install verification checklist”** (commands + expected outputs) so you can confirm everything is wired correctly: Keycloak `/auth`, nginx, edge-api, edge-agent, and portal SSO flow.
